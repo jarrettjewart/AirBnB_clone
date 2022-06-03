@@ -10,17 +10,21 @@ class FileStorage:
     __objects = {}
 
     def all(self):
-        return __objects
+        return self.__objects
 
     def new(self, obj):
-        __object.update(obj.__class__.__name__: str(obj.id))
+        self.__objects = obj.to_dict().copy()
+        self.__objects.update({obj.__class__.__name__: str(obj.id)})
 
     def save(self):
-        jstring = json.dumps(__objects)
-        with open(__file_path, "w") as jfile:
-            jfile.write(str(__objects))
+        jstring = json.dumps(self.__objects)
+        with open(self.__file_path, "w") as jfile:
+            jfile.write(str(self.__objects))
 
     def reload(self):
-        with open(__file_path, "r") as jfile:
-            jstring = jfile.read()
-            __objects = json.loads(jstring)
+        try:
+            with open(self.__file_path, "r") as jfile:
+                jstring = jfile.read()
+                __objects = json.loads(jstring)
+        except:
+            pass

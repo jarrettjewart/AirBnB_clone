@@ -4,7 +4,7 @@ other classes """
 
 
 import uuid
-import storage
+from .__init__ import storage
 from datetime import datetime
 
 
@@ -37,7 +37,7 @@ other classes"""
     def save(self):
         """Updates the updated_at attribute with the current datetime"""
         self.updated_at = datetime.now()
-        storage.save(self)
+        storage.save()
 
     def to_dict(self):
         """returns a dictionary containing all keys/values of the instance"""
