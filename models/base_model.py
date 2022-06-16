@@ -1,48 +1,61 @@
 #!/usr/bin/python3
-"""This class defines all common attributes/methods for \
-other classes """
+"""
+Contains class BaseModel
+"""
 
-
-import uuid
-from .__init__ import storage
 from datetime import datetime
+import models
+import uuid
+
+time = "%Y-%m-%dT%H:%M:%S.%f"
 
 
 class BaseModel:
-    """This class defines all common attributes/methods for \
-other classes"""
+    """
+    The BaseModel class from which future classes will be derived
+    """
+
     def __init__(self, *args, **kwargs):
-        """instantiation with id, and datetime for creation and update"""
+        """
+        Initialization of the base model
+        """
         if kwargs:
-            for (key, value) in kwargs.items():
-                if key == "__class__":
-                    pass
-                if key == "created_at":
-                    self.created_at = datetime.fromisoformat(value)
-                if key == "updated_at":
-                    self.updated_at = datetime.fromisoformat(value)
-                if key == "id":
-                    self.id = str(value)
+            for key, value in kwargs.items():
+                if key != "__class__":
+                    setattr(self, key, value)
+            if hasattr(self, "created_at") and type(self.created_at) is str:
+                self.created_at = datetime.strptime(kwargs["created_at"], time)
+            if hasattr(self, "updated_at") and type(self.updated_at) is str:
+                self.updated_at = datetime.strptime(kwargs["updated_at"], time)
         else:
-            self.created_at = datetime.now()
-            self.updated_at = datetime.now()
             self.id = str(uuid.uuid4())
-            storage.new(self)
+            self.created_at = datetime.now()
+            self.updated_at = self.created_at
+            models.storage.new(self)
+            models.storage.save()
 
     def __str__(self):
-        """returns class name, id, and dictionary"""
-        return("[{}] ({}) {}".format(str(self.__class__.__name__),\
-               str(self.id), self.__dict__))
+        """
+        String representation of the BaseModel class
+        """
+        return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,
+                                         self.__dict__)
 
     def save(self):
-        """Updates the updated_at attribute with the current datetime"""
+        """
+        updates the attribute 'updated_at' with the current datetime
+        """
         self.updated_at = datetime.now()
-        storage.save()
+        models.storage.save()
 
     def to_dict(self):
-        """returns a dictionary containing all keys/values of the instance"""
-        new_dict = self.__dict__
-        new_dict.update(__class__=str(self.__class__.__name__))
-        new_dict.update(created_at=datetime.isoformat(self.created_at))
-        new_dict.update(updated_at=datetime.isoformat(self.updated_at))
+        """
+        returns a dictionary containing all keys/values of the instance
+        """
+        new_dict = self.__dict__.copy()
+        if "created_at" in new_dict:
+            new_dict["created_at"] = new_dict["created_at"].strftime(time)
+        if "updated_at" in new_dict:
+            new_dict["updated_at"] = new_dict["updated_at"].strftime(time)
+        new_dict["__class__"] = self.__class__.__name__
         return new_dict
